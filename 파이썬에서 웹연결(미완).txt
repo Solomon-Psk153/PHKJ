@@ -1,0 +1,52 @@
+from flask import Flask, render_template, request
+from flask_mysqldb import MySQL
+
+app = Flask(__name__)
+
+# MySQL 연결 설정
+app.config['MYSQL_HOST'] = 'root'
+app.config['MYSQL_USER'] = 'USER'
+app.config['MYSQL_PASSWORD'] = 'wjddbtjd1*'
+app.config['MYSQL_DB'] = 'PHKJ'
+
+mysql = MySQL(app)
+
+# 홈 페이지
+@app.route('/')
+def index():
+    cur = mysql.connection.cursor()
+    cur.execute('SELECT * FROM 사용자')
+    data = cur.fetchall()
+    cur.close()
+    return render_template('index.html', data=data)
+
+if __name__ == '__main__':
+    app.run(debug=True)
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MySQL 데이터베이스 연동</title>
+</head>
+<body>
+    <h1>MySQL 데이터베이스 연동 예제</h1>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <!-- 다른 열들에 대한 헤더 추가 -->
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in data %}
+            <tr>
+                <td>{{ row.id }}</td>
+                <td>{{ row.name }}</td>
+                <!-- 다른 열들에 대한 데이터 추가 -->
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
