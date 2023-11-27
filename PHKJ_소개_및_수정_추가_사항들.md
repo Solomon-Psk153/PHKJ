@@ -20,3 +20,5 @@ PHKJ
 
 2023/11/17/금요일
 #### Node.js, Html, Css의 방대한 양 때문에 대안으로 Streamlit이라는 파이썬 패키지를 이용할 것이다.
+
+![실험 일지](https://github.com/Solomon-Psk153/PHKJ/assets/145089129/9fddc860-151f-4519-b59e-b61afc624673)
