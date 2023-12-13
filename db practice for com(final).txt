@@ -1,0 +1,146 @@
+create database com default character set utf8;
+
+use com;
+#SHOW ENGINE INNODB STATUS;
+SET FOREIGN_KEY_CHECKS=0;
+
+create table Users(
+    id char(100) not null comment "사용자의 아이디(회원가입할 때 사용한 아이디)를 저장하는 속성",
+    rank char(100) not null comment "사용자의 등급(일반, 동아리 장, 관리자)을 나타내는 속성",
+    phone char(100) null comment "사용자의 전화번호를 저장하는 속성",
+    email char(100) null comment "사용자의 이메일을 저장하는 속성",
+    passwd char(100) not null comment "사용자의 비밀번호를 나타내는 속성, 반드시 해시함수를 거친다.",
+    nickname char(100) not null comment "사용자의 별명을 나타내는 속성, 실제로 활동은 이 속성으로 한다",
+
+    constraint pk_id primary key(id),
+    constraint u_nickname unique key(nickname)
+) comment "사용자의 정보를 저장하는 테이블";
+
+create table PostComment(
+    cmt_no int unsigned not null auto_increment comment "댓글의 번호는 계속 증가함",
+    cmt_owner char(100) not null comment "Users 테이블에서 댓글 작성자 참조",
+    create_date datetime not null comment "댓글 단 날짜 저장",
+    cmt_text BLOB not null comment "댓글 내용 저장",
+    post_no int unsigned not null comment "PostPage 테이블에 있는 게시글 번호를 참조함",
+
+    constraint pk_cmt_no primary key(cmt_no),
+    constraint fk_cmt_owner foreign key(cmt_owner) references Users(id) on delete cascade on update cascade,
+    constraint fk_post_no foreign key(post_no) references PostPage(post_no) on delete cascade on update cascade
+) comment "게시글의 댓글 정보를 저장하는 테이블";
+
+create table Image_PostPage(
+    Image_no int unsigned not null auto_increment comment "중복 방지를 위한 이미지 번호",
+    Image_location char(255) not null comment "사진의 위치를 저장",
+    Image_post_no int unsigned not null comment "어떤 게시글에 속해있는지 저장",
+
+    constraint pk_files_loc_post_no primary key(Image_no, Image_location),
+    constraint fk_file_post_no foreign key(Image_post_no) references PostPage(post_no) on delete cascade on update cascade
+) comment "게시글의 사진 정보를 저장하는 테이블";
+
+create table PostPage(
+    post_no int unsigned not null auto_increment comment "게시글의 번호는 계속 증가함",
+    post_title char(100) not null comment "게시글의 제목",
+    create_date datetime not null comment "게시글을 생성한 날짜 저장",
+    modify_date datetime not null comment "게시글 수정 날짜 저장",
+    delete_date datetime null comment "게시글 삭제 날짜, 일정 기간이 지나면 db에서 완전 삭제",
+    post_text BLOB not null comment "게시글 내용 저장",
+    post_owner_id char(100) not null comment "Users 테이블에서 게시글 작성자 참조",
+
+    constraint pk_post_no primary key(post_no),
+    constraint fk_post_owner_id foreign key(post_owner_id) references Users(id) on delete cascade on update cascade
+) comment "게시글의 정보를 저장하는 테이블";
+
+delete from Club;
+delete from Image_PostPage;
+delete from PostComment;
+delete from PostPage;
+delete from Users;
+delete from who_in_the_club;
+
+alter table PostPage
+    add column post_title char(100) not null after post_no;
+
+drop table PostPage;
+
+insert into PostPage
+values
+(1, "test title", now(), now(), null, BINARY('hello world'), "asdasd")
+
+delete from PostPage
+
+create table Club(
+    club_name char(100) not null comment "동아리 이름에 대한 정보 저장",
+    club_creator_id char(100) null comment "동아리 장에 대한 정보 참조",
+    club_introduce BLOB not null comment "동아리에 대한 설명",
+    constraint pk_club_name primary key(club_name),
+    constraint fk_club_creator_id foreign key(club_creator_id) references Users(id) on delete set null on update cascade
+) comment "동아리에 대한 정보 저장";
+
+insert into Club
+values
+("test_club", null, binary("test only not special"));
+
+delete from PostPage
+
+create table who_in_the_club(
+    club_member char(100) not null comment"동아리에 가입된 사람들의 아이디 참조",
+    club_name char(100) not null comment "동아리의 이름 참조",
+
+    constraint pk_member_club_name primary key(club_member, club_name),
+    constraint fk_club_member foreign key(club_member) references Users(id) on delete cascade on update cascade,
+    constraint fk_club_name foreign key(club_name) references Club(club_name) on delete cascade on update cascade
+) comment "사용자가 소속된 동아리에 대한 정보를 저장";
+
+SET FOREIGN_KEY_CHECKS=1;
+
+#연습
+create user 'testID'@'%';
+grant all on com.Users to 'testID'@'%';
+grant all on mysql.user to 'testID'@'%';
+revoke all on com.Users from 'testID'@'%';
+revoke all on mysql.user from 'testID'@'%';
+
+show grants for 'testID'@'%';
+show grants for 'InfoEditor'@'%';
+FLUSH PRIVILEGES;
+
+create user 'InfoEditor'@'%';
+grant all on com.Users to 'InfoEditor'@'%';
+
+create user 'PostEditor'@'%';
+grant all on com.PostPage to 'PostEditor'@'%';
+create user 'PostEditor'@'%';
+grant all on com.Image_PostPage to 'PostEditor'@'%';
+
+create user 'CmtEditor'@'%';
+grant all on com.PostComment to 'CmtEditor'@'%';
+
+create user 'ClubEditor'@'%';
+grant all on com.Club to 'ClubEditor'@'%';
+grant all on com.who_in_the_club to 'ClubEditor'@'%';
+create user '사용자ID'@'%'
+com
+
+create view user_own_post as
+    select *
+    from PostPage post
+    where post.post_owner_id = SUBSTRING_INDEX(USER(),'@',1)
+
+grant all on com.user_own_post to 'testID'@'%'
+
+grant all on com.user_own_post to '사용자ID'@'%'
+
+revoke all on com.user_own_post from '사용자ID'@'%'
+
+GRANT SELECT ON database1.view1 TO 'someuser'@'somehost';
+
+#https://stackoverflow.com/questions/11693727/mysql-grant-where
+
+수정된 내용
+Club에서 Users저장 내용은 데이터베이스 성능 때문에 뺌,
+댓글 내용, 게시글 내용은 not null로 바뀜, 이것도 성능 및 보안 때문에
+post_title 추가됨
+소속된 동아리 사용자 아이디는 admin_no => club_member
+소속된 동아리 동아리 이름 rank => club_name
+cmt_owner, post_owner_id의 이름이 삭제된 이름으로 뜨는 게 아니라 정보를 지워야 함(아니면 생성 못함)
+club_creator_id는 null로 지정 아니면 동아리 전체가 날라감
